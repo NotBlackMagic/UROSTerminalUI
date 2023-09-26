@@ -1,0 +1,12 @@
+[
+ {
+  "path": "/packages/multimedia/LVGL/LVGL", 
+  "ver": "v8.3.9", 
+  "name": "LVGL"
+ }, 
+ {
+  "path": "/packages/peripherals/micro_ros", 
+  "ver": "humble-gcc-10", 
+  "name": "MICRO_ROS"
+ }
+]
