@@ -10,6 +10,7 @@ lv_obj_t* connectionButton;
 lv_obj_t* connectionMenuArea;
 lv_obj_t* connectionSerialButton;
 lv_obj_t* connectionEthernetButton;
+lv_obj_t* connectionDisconnectButton;
 
 /**
   * @brief  This function handles button events of this GUI part
@@ -41,6 +42,14 @@ static void GUITopBarButtonEvent(lv_event_t * e) {
         else if(btn == connectionEthernetButton) {
             //Ask for a Ethernet uROS connection
             uint8_t connectionType = 0x02;
+            InterThreadMessageStruct uROSMsg = {.id = UROSThread_Connect, .data = (uint32_t*)connectionType, .length = 0 };
+//            rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
+
+            lv_obj_add_flag(connectionMenuArea, LV_OBJ_FLAG_HIDDEN);
+        }
+        else if(btn == connectionDisconnectButton) {
+            //Ask to disconnect
+            uint8_t connectionType = 0x00;
             InterThreadMessageStruct uROSMsg = {.id = UROSThread_Connect, .data = (uint32_t*)connectionType, .length = 0 };
 //            rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
 
@@ -118,7 +127,7 @@ void GUITopBarInit() {
     lv_obj_set_style_bg_color(connectionMenuArea, lv_color_hex(0x101010), LV_PART_MAIN);
     lv_obj_set_style_border_width(connectionMenuArea, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(connectionMenuArea, 0, LV_PART_MAIN);
-    lv_obj_set_size(connectionMenuArea, 240, 48);
+    lv_obj_set_size(connectionMenuArea, 240, 71);
     lv_obj_align(connectionMenuArea, LV_ALIGN_TOP_MID, 0, 25);
     lv_obj_add_flag(connectionMenuArea, LV_OBJ_FLAG_HIDDEN);
 
@@ -150,7 +159,21 @@ void GUITopBarInit() {
     lv_label_set_text(label, "ETHERNET (ETH)");
     lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
     //Add event
-//    lv_obj_add_event_cb(connectionEthernetButton, GUITopBarButtonEvent, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(connectionEthernetButton, GUITopBarButtonEvent, LV_EVENT_CLICKED, NULL);
+
+    connectionDisconnectButton = lv_btn_create(connectionMenuArea);
+    lv_obj_remove_style_all(connectionDisconnectButton);
+    lv_obj_add_style(connectionDisconnectButton, &mainStyle, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(connectionDisconnectButton, STYLE_COLOR_DARK_GREY, LV_PART_MAIN);
+    lv_obj_add_style(connectionDisconnectButton, &mainStylePressed, LV_STATE_PRESSED);
+    lv_obj_set_size(connectionDisconnectButton, 240, 25);
+    lv_obj_align(connectionDisconnectButton, LV_ALIGN_TOP_MID, 0, 46);
+    //Button Label
+    label = lv_label_create(connectionDisconnectButton);
+    lv_label_set_text(label, "DISCONNECT");
+    lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
+    //Add event
+    lv_obj_add_event_cb(connectionDisconnectButton, GUITopBarButtonEvent, LV_EVENT_CLICKED, NULL);
 
 	//Time
     timeLabel = lv_label_create(topBarArea);

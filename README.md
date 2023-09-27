@@ -1,53 +1,88 @@
-# GUI Interface for the VUHFRadio: 2nd Generation
-This is the firmware for the 2nd Generation GUI Interface for the [VUHFRadio](www.notblackmagic.com/projects/vuhf-radio/) Module, with a costume M.2 version also developed, using the [MIMXRT1060-EVKB](www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/i-mx-rt1060-evaluation-kit:MIMXRT1060-EVKB) development board and touchscreen from NXP. This kit was kindly provided by [NXP](www.nxp.com) and [RT-Thread](www.rt-thread.io) as part of the [Embedded GUI Contest](https://rt-thread.medium.com/embedded-gui-contest-4c22ba04ca37).
+# Micro-ROS (uROS) Terminal UI
+This is the firmware for a simple Terminal UI interface for [Micro-ROS](https://micro.ros.org/), allowing to add a simple graphical UI to a [ROS 2](https://www.ros.org/) Robot over a Micro-ROS interface. The board it is running on is the new RT-Thread [HMI-Board](https://blog.lvgl.io/2023-06-14/ra6m3-hmi-board-review) developed by [RT-Thread](www.rt-thread.io) in colaboration with [Renesas](https://www.renesas.com/us/en) and [LVGL](https://lvgl.io/) using the high-performance [RA6M3](https://www.renesas.com/us/en/products/microcontrollers-microprocessors/ra-cortex-m-mcus/ra6m3-32-bit-microcontrollers-120mhz-usb-high-speed-ethernet-and-tft-controller) (Cortex-M4f running at 120 MHz, 2 MB flash and 640 kB RAM) chip from Renesas. This board was kindly provided by RT-Thread, LVGL and Renesas as part of the [Embedded GUI Contest](https://rt-thread.medium.com/2023-embedded-gui-contest-403648de53e4).
 
 The following features are tested and working:
-- Loading of configurations and board information on startup from the VUHFRadio Module
-- Update and display RSSI and RF Frequency tracking variables
-- Working menus for changing main analog domain and digital domain configurations and send the changes to the VUHFRadio module
-- Decode and display AX.25 frames received from the VUHFRadio Module over the KISS protocol
-- Spectrum of the receiver signal using the digital DSP interface of the AX5043 and the SAI peripheral of the RT1060 MCU
-- Costume version of the VUHFRadio module, a M.2 version fully compatible with the M.2 spec and connected to the M.2 connector of the development board
+- Test
 
 Features under development but not currently finished:
-- Advanced settings menu for more analog and digital domain configurations for the VUHFRadio module
+- Test
 
 Features planned but not yet started:
-- A simple message form/window to input AX.25 messages and send them
-- A terminal style window for viewing and sending CAT messages from/to the module
+- Test
 
 ## Demos
 A short demo of the GUI Interface working and its current features can be found in the video bellow:
 
 [![GUI Interface Demo](https://img.youtube.com/vi/tcLBblnkBhU/0.jpg)](https://youtu.be/tcLBblnkBhU "GUI Interface Demo")
 
-Another short demo, this time for the working baseband signal and spectrum viewer:
-
-[![GUI Spectrum View](https://img.youtube.com/vi/ZY454bezK1s/0.jpg)](https://youtu.be/ZY454bezK1s "GUI Spectrum View")
-
 ## Hardware
 
 ### BOM
-- 1x MIMXRT1060 Development Board
-- 1x RK043FN66HS-CTG Touch Screen Module
-- 2x USB Micro-B cables
-- 4x Dupont F-M jumper cables
-- 1x VUHRadio M.2 Module V1
+- 1x HMI-Board Development Board
+- 1x USB-C cable
+- 1x USB to UART Bridge (e.g. CP2102 module)
 
-This second generation GUI Interface for the VUHFRadio module is being developed with the MIMXRT1060-EVKB development kit from NXP. The kit comes with the MIMXRT1060 development board and a 4.3" LCD Module (RK043FN66HS-CTG) with a resolution of 480x272 and capacitive touch.
+This Micro-ROS Terminal UI interface is being developed with the HMI-Board from RT-Thread. The HMI-Board is based on the high-performance RA6M3 MCU from Renesas with a Cortex-M4f running at 120 MHz and 2 MB of flash and 640 kB of RAM. The board comes with a 4.3" LCD Module (RK043FN66HS-CTG) with a resolution of 480x272 and capacitive touch as well as with a WiFi module and diverse connection options like CAN, Ethernet, USB as well as PMOD and Arduino Headers.
 
-The VUHFRadio Module is a project I developed, it is a dual band (VHF and UHF) dual radio transceiver based around the [AX5043](www.onsemi.com/products/wireless-connectivity/wireless-rf-transceivers/ax5043) Sub-GHz transceiver IC. Both the hardware and firmware for the module are openly available from the [Website](www.notblackmagic.com/projects/vuhf-radio/) and [GitHub](https://github.com/NotBlackMagic/VUHFRadio) respectively. This VUHFRadio module can be connected and powered through the UART header with the MIMXRT1060 development board: The UART pins connected to the Arduino Header J16 Pin 1 (RX) & 2 (TX), and the power pins, 3V3 and GND, are connected to the Arduino Header J32 Pin 4 (3V3) & 6 (GND).
+The current version only supports a Micro-ROS connection over serial, specifically over UART4 acceseble on the Arduino Header Jxx Pin 1 (RX) and 2 (TX).
 
-A custom version of the VUHFRadio Module, for the M.2 slot of the MIMXRT1060 board, was developed and is working with the hardware files (Gerber, Schematic and Assembly view) available in the "Hardware" folder. The assembled module is shown in the figure bellow:
-
-![VUHFRadio M.2 module](./VUHFRadio_M2_Module.png)
-
-This M.2 module should conform to the M.2 specs, with the digital interfaces working at 1.8V. But due to the level translator (TXS0108E) for the M.2 module not arriving in time, this had to be bi-passed with bodge wires and to make it work with the development board its M.2 level translators (U9 and U10) had to be removed and bi-passed with bodge wires as well. This is visible in the figure bellow, with the VUHRadio M.2 module mounted in the top left corner and the removed and bi-passed level translator ICs to its right:
-
-![Development board with VUHFRadio M.2 module](./Development_Board_wVUHFRadioM2.png)
+![HMI-Board](./xxx.png)
 
 ## Software
-The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The base project, on which this project is built upon, with RT-Thread and LVGL running on the MIMXRT1060-EVKB board is available [here](www.github.com/NotBlackMagic/MIMXRT1060-EVKB). The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and the full project files and dependencies are included in this GitHub repository. To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio. To debug and flash the board from RT-Thread Studio follow the instruction bellow in the "Flashing and Debugging" Section.
+The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and the Micro-ROS interface is based on a [Micro-ROS RT-Thread package](https://github.com/wuhanstudio/micro_ros) with some modifications. The full project files and dependencies are included in this GitHub repository, including both the LVGL and Micro-ROS package (both with some modifications). To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio. 
+
+To debug and flash the board from RT-Thread Studio follow the instruction bellow in the "Flashing and Debugging" Section.
+
+### Adding Peripherals
+#### Pre Requisites (Installation)
+1) Install [RA FSP Smart Configurator](https://www.renesas.com/us/en/software-tool/ra-smart-configurator), available to download [here](https://github.com/renesas/fsp/releases) (use the IAR or Keil MDK release)
+2) Click the "RA Smart Configurator" Link in the RT-Thread project
+3) Select the install directory of the **RA Smart Configurator** (e.g. "C:\Renesas\RA\sc_v2023-07_fsp_v4.6.0")
+
+#### Post Generation Changes/Configuration
+Files that need chang after generation in **RA Smart Configurator** besides enabling newly added peripherals in RT-Thread (to get it to compile):
+
+1) Move generated "memory_regions.ld" from "root" to "/script"
+2) Delete the generated "src/hal_entry.c" file
+3) Enable/add to build necessary HAL Drivers, both in folders "\rt-thread\components\drivers" and "\libraries\HAL_Drivers"
+4) Set required defines in the "rtconfig.h" file
+5) It can be necessary to also change the "startup.c" file located at "\ra\fsp\src\bsp\cmsis\Device\RENESAS\Source\startup.c". It should read the following in the Reset Handler function:
+
+```c
+void Reset_Handler (void) {
+    /* Initialize system using BSP. */
+    SystemInit();
+
+    /* Call user application. */
+#ifdef __ARMCC_VERSION
+    main();
+#elif defined(__GNUC__)
+    extern int entry(void);
+    entry();
+#endif
+
+    while (1) {
+        /* Infinite Loop. */
+    }
+}
+```
+<!--
+For RTC (still not working...):
+
+Change "\libraries\HAL_Drivers\drv_common.c" function "void R_BSP_WarmStart (bsp_warm_start_event_t event)":
+//https://community.renesas.com/mcu-mpu/ra/f/forum/18972/ra6m4-sub-clock-not-working---bug-fix
+-->
+
+
+### Flashing and Debugging
+pyOCD setup:
+1) Installed with: py -m pip install -U pyocd
+2) Changed pyOCD location in RT-Thread: Debugger settings->Debugger->Executable path = "C:\Python311\Scripts\pyocd.exe"
+3) To get path: import a_module
+	print(a_module.__file__)
+4) Installed support for HMI-Board: pyocd pack install R7FA6M3AH
+5) Done!
+
 
 ### Architecture
 The GUI Interface firmware is composed of three main modules, each responsible for a specific function and running as their own thread:
@@ -89,18 +124,3 @@ To manage the GUI better it is split into different areas, with each area being 
 The main menu (guiMenu.c) is designed but it is not fully functional yet, it can be navigated and values can be changed but not all are sent to the VUHFRadio Module, for now. The menu style is shown in the figure bellow:
 
 ![GUI UI Menu](./GUI_UI_Menu.png)
-
-### Flashing and Debugging
-The project uses the J-Link Debugger settings so it is necessary to flash the MIMXRT1060-EVKB on-board debug probe with the J-Link Firmware. 
-
-The following article provides the  on how to flash the J-Link Firmware onto the on-board debug probe:
-https://community.nxp.com/t5/i-MX-RT-Knowledge-Base/Using-J-Link-with-MIMXRT1060-EVKB/ta-p/1452717
-
-### Recover Unresponsive/"Bricked" Board
-When flashing an erroneous code, it can happen that the EVK board gets unresponsive, impossible to create a debug link and erase and flash a good code to it. To recover from such events, I found the following steps work:
-
-- Re-flash the on-board debug probe with the CMSIS-DAP firmware
-- Change the boot option of the EVK board to the SD card (SW4: 1010), aka to nothing, and power cycle the board
-- Use the MCUXpresso "GUI Flash Tool" to fully erase the flash
-- Change the boot option back to the QSPI Flash (SW4: 0010) and power cycle the board
-- The board should now allow a debug connection again

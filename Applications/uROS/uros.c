@@ -32,7 +32,12 @@ static rt_uint8_t uROSThreadStack[UROS_THREAD_STACK_SIZE];
 struct rt_messagequeue uROSMessageQueue;
 static uint8_t uROSMessagePool[UROS_MESSAGE_POOL_SIZE];
 
-void SubscriberCallback(const void *msgin) {
+/**
+  * @brief  This function handles uROS Subscription callback
+  * @param  msgin: Pointer to subscribed message data
+  * @return None
+  */
+void UROSSubscriberCallback(const void *msgin) {
     //Please remember to enable -u_printf_float in compiler settings
 //    const geometry_msgs__msg__Twist * twistMsg = (const geometry_msgs__msg__Twist *)msgin;
 //    rt_kprintf("linear \n");
@@ -57,6 +62,29 @@ void SubscriberCallback(const void *msgin) {
     }
     InterThreadMessageStruct guiMsg = {.id = id, .data = (uint32_t*)msgin, .length = 0 };
     rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
+}
+
+/**
+  * @brief  This function subscribes to the "topic" of type "type"
+  * @param  type: To subscribe message type (ROSIDL_GET_MSG_TYPE_SUPPORT())
+  * @param  topic: Name of topic to subscribe
+  * @return rmw_ret_t
+  */
+rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const char* topic) {
+    //Create new subscriber
+    rmw_ret_t error = rclc_subscription_init_default(&subscriber, &node, type, topic);
+    if (error != RCL_RET_OK) {
+        rt_kprintf("[micro_ros] failed to create subscriber\n");
+        return error;
+    }
+
+    error = rclc_executor_add_subscription(&executor, &subscriber, &twistMsg, &UROSSubscriberCallback, ON_NEW_DATA);
+    if (error != RCL_RET_OK) {
+        rt_kprintf("[micro_ros] failed to add subscriber to executor\n");
+        return error;
+    }
+
+    return error;
 }
 
 void UROSThread() {
@@ -169,7 +197,12 @@ void UROSThread() {
 
                         //Get arguments
                         uint8_t interface = (uint8_t)(msg.data);
-                        if(interface == 0x01) {
+                        if(interface == 0x00) {
+                            //Disconnect
+                            uROSConenctionType = 0x00;
+                            rt_pin_write(GPIO_LED_USER_1, PIN_HIGH);
+                        }
+                        else if(interface == 0x01) {
                             //Connect via Serial interface
                             set_microros_transports();
                             uROSConenctionType = 0x01;
@@ -182,6 +215,7 @@ void UROSThread() {
                             rt_pin_write(GPIO_LED_USER_1, PIN_LOW);
                         }
 
+                        //Get allocator
                         allocator = rcl_get_default_allocator();
 
                         //Create init_options
@@ -235,9 +269,28 @@ void UROSThread() {
                     topicNamesList = rcl_get_zero_initialized_names_and_types();
                     error = rcl_get_topic_names_and_types(&node, &allocator, true, &topicNamesList);
                     if (error != RCL_RET_OK) {
-                        rt_kprintf("[micro_ros] failed to get topic list\n");
+                        char str[64];
+                        sprintf(str, "[micro_ros] failed to get topic list (Error: %d)\n", error);
+                        //RCL_RET_NODE_INVALID              200
+                        //RCL_RET_INVALID_ARGUMENT          11
+                        //RCL_RET_NODE_INVALID_NAME         201
+                        //RCL_RET_NODE_INVALID_NAMESPACE    202
+                        //RCL_RET_ERROR                     1
+                        //RMW_RET_TIMEOUT                   2
+                        //RMW_RET_UNSUPPORTED               3
+//                        rt_kprintf("[micro_ros] failed to get topic list\n");
+                        rt_kprintf(str);
+                        break;
                     }
                     topicNamesListInitialized = 0x01;
+
+                    rt_kprintf("[micro_ros] Topics:\n");
+                    uint8_t i;
+                    for(i = 0; i < topicNamesList.names.size; i++) {
+                        rt_kprintf(topicNamesList.names.data[i]);
+                        rt_kprintf(topicNamesList.types->data[i]);
+                        rt_kprintf("\n");
+                    }
 
                     //Count publishers and subscriber to topic
 //                    rcl_count_publishers();
@@ -251,39 +304,26 @@ void UROSThread() {
                 //Subscriber Control
                 case UROSThread_Subscriber_Twist: {
                     //Twist Subscriber control
-//                    //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
-//                    if(subscribedTopicType != SubscriberTopic_None) {
-//                        //Already subscribed to a topic, unsubscribe and clear subscriber
-//                        error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
-//                        rcl_subscription_fini(&subscriber, &node);                            //Destroy/clear subscriber
-//                    }
-//
-//                    //Create new subscriber
-//                    error = rclc_subscription_init_default( &subscriber,
-//                                                            &node,
-//                                                            ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-//                                                            (char*)msg.data);
-//                    if (error != RCL_RET_OK) {
-//                        rt_kprintf("[micro_ros] failed to create subscriber\n");
-//                        break;
-//                    }
-//
-//                    //Create executor
-//                    error = rclc_executor_init(&executor, &support.context, 1, &allocator);
-//                    if (error != RCL_RET_OK) {
-//                        rt_kprintf("[micro_ros] failed to initialize executor\n");
-//                        break;
-//                    }
-//
-//                    error = rclc_executor_add_subscription(&executor, &subscriber, &twistMsg, &SubscriberCallback, ON_NEW_DATA);
-//                    if (error != RCL_RET_OK) {
-//                        rt_kprintf("[micro_ros] failed to add subscriber to executor\n");
-//                        break;
-//                    }
-//
-//                    //Safe subscribed topic information
-//                    subscribedTopicType = SubscriberTopic_Twist;
-//                    strcpy(subscribedTopic, (char*)msg.data);
+                    //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
+                    if(subscribedTopicType != SubscriberTopic_None) {
+                        //Already subscribed to a topic, unsubscribe and clear subscriber
+                        error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
+                        if (error != RCL_RET_OK) {
+                            rt_kprintf("[micro_ros] failed to unsubscribe from topic\n");
+                            break;
+                        }
+                        rcl_subscription_fini(&subscriber, &node);                            //Destroy/clear subscriber
+                    }
+
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+
+                    //Safe subscribed topic information
+                    subscribedTopicType = SubscriberTopic_Twist;
+                    strcpy(subscribedTopic, (char*)msg.data);
                     break;
                 }
                 //Publisher Control
@@ -310,9 +350,9 @@ void UROSThread() {
         }
 
         if(btnPressed == 0x00 && rt_pin_read(GPIO_BUTTON_USER_2) == PIN_LOW) {
-//            uint8_t connectionType = 0x01;
-//            InterThreadMessageStruct uROSMsg = {.id = UROSThread_Connect, .data = (uint32_t*)connectionType, .length = 0 };
-//            rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
+            uint8_t connectionType = 0x01;
+            InterThreadMessageStruct uROSMsg = {.id = UROSThread_Connect, .data = (uint32_t*)connectionType, .length = 0 };
+            rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
             btnPressed = 0x01;
         }
         else {

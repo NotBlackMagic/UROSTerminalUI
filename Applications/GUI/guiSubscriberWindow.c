@@ -21,11 +21,36 @@ static void GUISubscriberListButtonEvent(lv_event_t * e) {
     lv_obj_t* btn = lv_event_get_target(e);
     if(code == LV_EVENT_CLICKED) {
         lv_obj_t* btnLabel = lv_obj_get_child(btn, NULL);
-        lv_label_set_text(subscriberInfoHeaderLabel, lv_label_get_text(btnLabel));
+        char* btnLabelStr = lv_label_get_text(btnLabel);
+        lv_label_set_text(subscriberInfoHeaderLabel, btnLabelStr);
+
+        //Get topic name and type from pressed button label: "cmd_vel [geometry_msgs/msg/Twist]"
+        //First half of string is topic name, e.g. "cmd_vel"
+//        char* topic = strtok(btnLabelStr, " ");
+        //Second half of string is topic type, e.g. "[geometry_msgs/msg/Twist]"
+//        char* type = strtok(NULL, " ");
+
+        char topic[64];
+        char type[64];
+        sscanf(btnLabelStr, "%s %s", topic, type);
+        //Remove brackets around topic type string aka remove first, '[', and last character, ']',
+        type[strlen(type) - 1] = '\0';
+        char* typePtr = &type[1];
+
+        char str[64];
+        sprintf(str, "[gui] Subscribe to %s [%s]\n", topic, typePtr);
+        rt_kprintf(str);
 
         //Send request to subscribe to this topic
-        char* topic = "cmd_vel";
-        InterThreadMessageStruct uROSMsg = {.id = UROSThread_Subscriber_Twist, .data = (uint32_t*)topic, .length = strlen(topic) };
+        int id = UROSThread_Subscriber_None;
+        if(strcmp(typePtr, "geometry_msgs/msg/Twist") == 0) {
+            id = UROSThread_Subscriber_Twist;
+        }
+        else {
+            return;
+        }
+
+        InterThreadMessageStruct uROSMsg = {.id = id, .data = (uint32_t*)topic, .length = strlen(topic) };
         rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
 
         geometry_msgs__msg__Twist twistMsg;
@@ -117,13 +142,13 @@ void GUISubscriberWindowInit() {
 //    lv_obj_set_style_border_width(label, 0, LV_PART_MAIN);
 
     //Add buttons to list
-    lv_obj_t * listButton = lv_list_add_btn(subscriberList, NULL, "Twist [Twist]");
+    lv_obj_t * listButton = lv_list_add_btn(subscriberList, NULL, "cmd_vel [geometry_msgs/msg/Twist]");
     lv_obj_set_style_bg_color(listButton, STYLE_COLOR_LIGHT_GREY, LV_PART_MAIN);
     lv_obj_set_style_text_color(listButton, STYLE_COLOR_WHITE, LV_PART_MAIN);
     //Add event
     lv_obj_add_event_cb(listButton, GUISubscriberListButtonEvent, LV_EVENT_CLICKED, NULL);
 
-    listButton = lv_list_add_btn(subscriberList, NULL, "Odom [Odom]");
+    listButton = lv_list_add_btn(subscriberList, NULL, "odom [Odom]");
     lv_obj_set_style_bg_color(listButton, STYLE_COLOR_LIGHT_GREY, LV_PART_MAIN);
     lv_obj_set_style_text_color(listButton, STYLE_COLOR_WHITE, LV_PART_MAIN);
     //Add event
