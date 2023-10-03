@@ -13,6 +13,7 @@ extern "C" {
 #define STYLE_COLOR_DARK_GREY			lv_color_hex(0x202020)
 #define STYLE_COLOR_GREY				lv_color_hex(0x404040)
 #define STYLE_COLOR_LIGHT_GREY			lv_color_hex(0x606060)
+#define STYLE_COLOR_LIGHTER_GREY        lv_color_hex(0x808080)
 #define STYLE_COLOR_RED					lv_color_hex(0xFF0000)
 #define STYLE_COLOR_DARK_RED			lv_color_hex(0x600000)
 #define STYLE_COLOR_GREEN				lv_color_hex(0x00FF00)

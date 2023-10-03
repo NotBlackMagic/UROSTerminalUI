@@ -20,7 +20,9 @@ extern "C" {
 
 //GUI Parts
 #include "guiInfoWindow.h"
+#include "guiPublisherWindow.h"
 #include "guiSubscriberWindow.h"
+#include "guiTopicListWindow.h"
 
 //Bottom bar GUI objects
 extern lv_obj_t* bottomBarArea;

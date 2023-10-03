@@ -2,13 +2,15 @@
 This is the firmware for a simple Terminal UI interface for [Micro-ROS](https://micro.ros.org/), allowing to add a simple graphical UI to a [ROS 2](https://www.ros.org/) Robot over a Micro-ROS interface. The board it is running on is the new RT-Thread [HMI-Board](https://blog.lvgl.io/2023-06-14/ra6m3-hmi-board-review) developed by [RT-Thread](www.rt-thread.io) in colaboration with [Renesas](https://www.renesas.com/us/en) and [LVGL](https://lvgl.io/) using the high-performance [RA6M3](https://www.renesas.com/us/en/products/microcontrollers-microprocessors/ra-cortex-m-mcus/ra6m3-32-bit-microcontrollers-120mhz-usb-high-speed-ethernet-and-tft-controller) (Cortex-M4f running at 120 MHz, 2 MB flash and 640 kB RAM) chip from Renesas. This board was kindly provided by RT-Thread, LVGL and Renesas as part of the [Embedded GUI Contest](https://rt-thread.medium.com/2023-embedded-gui-contest-403648de53e4).
 
 The following features are tested and working:
-- Test
+- Create, on request, a Micro-ROS connection to the host PC over a serial link (Baud: 115200 with 8-N-1)
+- Subscribe to a Topic and display the returned messages
 
 Features under development but not currently finished:
-- Test
+- Create a Publisher with controllable message content
+- List available Topics in the current ROS environment together with its subscriber and publisher nodes
 
 Features planned but not yet started:
-- Test
+- Ethernet based connection
 
 ## Demos
 A short demo of the GUI Interface working and its current features can be found in the video bellow:
@@ -24,23 +26,39 @@ A short demo of the GUI Interface working and its current features can be found 
 
 This Micro-ROS Terminal UI interface is being developed with the HMI-Board from RT-Thread. The HMI-Board is based on the high-performance RA6M3 MCU from Renesas with a Cortex-M4f running at 120 MHz and 2 MB of flash and 640 kB of RAM. The board comes with a 4.3" LCD Module (RK043FN66HS-CTG) with a resolution of 480x272 and capacitive touch as well as with a WiFi module and diverse connection options like CAN, Ethernet, USB as well as PMOD and Arduino Headers.
 
-The current version only supports a Micro-ROS connection over serial, specifically over UART4 acceseble on the Arduino Header Jxx Pin 1 (RX) and 2 (TX).
+The current version only supports a Micro-ROS connection over serial, specifically over UART4 accessible on the Arduino Header Jxx Pin 1 (RX) and 2 (TX). Bellow is a Figure with the pinout of the HMI-Board together with the default functionality of each pin (as configured in the RA FSP Smart Configurator):
 
-![HMI-Board](./xxx.png)
+![HMI-Board](./HMI-Board_Pinout.png)
 
 ## Software
-The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and the Micro-ROS interface is based on a [Micro-ROS RT-Thread package](https://github.com/wuhanstudio/micro_ros) with some modifications. The full project files and dependencies are included in this GitHub repository, including both the LVGL and Micro-ROS package (both with some modifications). To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio. 
+The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and the Micro-ROS interface is based on a [Micro-ROS RT-Thread package](https://github.com/wuhanstudio/micro_ros) with some modifications<sup>1</sup>. The full project files and dependencies are included in this GitHub repository, including both the LVGL and Micro-ROS package (both with some modifications). To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio.
 
 To debug and flash the board from RT-Thread Studio follow the instruction bellow in the "Flashing and Debugging" Section.
 
+<sup>1</sup> The Micro-ROS packet used is the one for ROS Humble and GCC5, branch "humble-gcc-5". This branch required modifications to be complied which included to move files out of duplicate recursive folders e.g. "src/action_msgs/action_msgs" content is moved to the base folder "src/actions_msgs".
+
 ### Adding Peripherals
+For this project it was necessary to create/enable a new peripheral that was not yet configured/available in the base project for the HMI-Board: a new serial/UART. To enable the new serial port, UART4 on the Arduino Headers, on the HMI-Board the  steps listed bellow where required. These steps help create the basis to enable and change configurations of peripherals of the HMI-Board.
+
 #### Pre Requisites (Installation)
 1) Install [RA FSP Smart Configurator](https://www.renesas.com/us/en/software-tool/ra-smart-configurator), available to download [here](https://github.com/renesas/fsp/releases) (use the IAR or Keil MDK release)
 2) Click the "RA Smart Configurator" Link in the RT-Thread project
 3) Select the install directory of the **RA Smart Configurator** (e.g. "C:\Renesas\RA\sc_v2023-07_fsp_v4.6.0")
 
+#### Changes/Configuration of new peripherals
+It is now possible to open the MCU configuration file with the **RA Smart Configurator** tool by clicking the "RA Smart Configurator" Link in the RT-Thread project. In the **RA Smart Configurator** we can now enable new peripherals and/or change settings of existing ones. As an example on how to enable and configure a new peripheral I'll go throught the steps I took to enable UART4:
+
+1) Now open the "Stacks" tab from the bottom of the "FSP Configuration" window on the left side of the screen.
+2) Click "New Stack->Connectivity->UART (r_sci_uart)" (for adding UART4 I had to add 5 stacks, uart0 to uart4, and then delet the not desired ones, uart0 to uart3...)
+3) Now we can select this newly created stack and configure it by clicking/selecting it and navigating to the bottom of the window where the Stack "Properties" are shown (configuration is based on how UART9 is configured, the default terminal interface).
+4) Select the Pins used for UART4
+5) Check that the name of the peripheral is set to "g_uart4" (Important as this is how RT-Thread will address it)
+6) Set the name of the IRQ callback function, in "Module->Interrupts->Callback" to "user_uart4_callback" (Important as this is how RT-Thread expects the function to be called)
+7) Set the UART configuration and Baudrate: Here 115200 and 8-N-1
+8) Finally click the "Generate Project Content" Button in the top right corner of the "FSP Configuration" window
+
 #### Post Generation Changes/Configuration
-Files that need chang after generation in **RA Smart Configurator** besides enabling newly added peripherals in RT-Thread (to get it to compile):
+After the new files where generated by the **RA Smart Configurator**, a few additional steps have to be performed back in the RT-Thread IDE:
 
 1) Move generated "memory_regions.ld" from "root" to "/script"
 2) Delete the generated "src/hal_entry.c" file
@@ -73,37 +91,33 @@ Change "\libraries\HAL_Drivers\drv_common.c" function "void R_BSP_WarmStart (bsp
 //https://community.renesas.com/mcu-mpu/ra/f/forum/18972/ra6m4-sub-clock-not-working---bug-fix
 -->
 
+### Configuring Micro-ROS to use UART4
+The final step is to tell Micro-ROS to use UART4 (or change to other UART desired). This is done throught the RT-Thread configuration file, "rtconfig.h", in the section for the Micro ROS packet. Here we can change the "MICRO_ROS_SERIAL_NAME" to "uart4". And that is all, now when a new serial connection is created using the Micro-ROS API it will use UART4.
 
 ### Flashing and Debugging
-pyOCD setup:
-1) Installed with: py -m pip install -U pyocd
-2) Changed pyOCD location in RT-Thread: Debugger settings->Debugger->Executable path = "C:\Python311\Scripts\pyocd.exe"
-3) To get path: import a_module
-	print(a_module.__file__)
-4) Installed support for HMI-Board: pyocd pack install R7FA6M3AH
-5) Done!
-
+Altough the HMI-Board should be supported and work out of the box with the latest RT-Thread IDE, I had some difficulties which had to do with the installed debugger tool (pyOCD) not having the necessary files for the HMI-Board. I solved this by installing pyOCD fresh and use that instead of the one that came with the RT-Thread IDE. The steps for this are lsited bellow:
+1) Install pyOCD with: py -m pip install -U pyocd
+2) Install support for HMI-Board with: pyocd pack install R7FA6M3AH
+3) Changed pyOCD location in the RT-Thread IDE: Debugger settings->Debugger->Executable path = "C:\Python311\Scripts\pyocd.exe". If the path is not know it can be obtained from a Python terminal with the following commands: "import pyOCD" and	"print(pyOCD.\_\_file\_\_)"
 
 ### Architecture
 The GUI Interface firmware is composed of three main modules, each responsible for a specific function and running as their own thread:
 
-- GUI: Responsible to draw the GUI, react to GUI events and update the GUI
-- Radio Interface: Responsible for interacting with the VUHFRadio module through a serial interface
-- DSP: Responsible for signal processing of the I/Q signals received from the VUHFRadio module through a SAI interface in TDM mode
+- GUI: Thread responsible to draw the GUI, react to GUI events and update the GUI
+- uROS: Thread running Micro-ROS, handling the connection, subscribers, publishers and events.
 
 To manage communication between threads, each thread has its own message queue where other threads, and the ISR in some cases, publish necessary messages to. A standard message type is defined as the **InterThreadMessageStruct**: It holds an ID/OpCode, a pointer to data and a data length field. In cases where the data fits directly into the data pointer, aka data that fits in 4 bytes, it is passed by value and not through a pointer.
 
-The communication from the VUHFRadio module to the GUI Interface are handled as follows: 
-1. Bytes are read and processed by the serial ISR and a full packet is assembled
-2. The full packet is published by reference from the serial ISR to the Radio Interface message queue
-3. The Radio Interface Thread reads the message from the queue and decodes it
-4. If changes to the GUI are required, the Radio Interface Thread publishes the required changes to the GUI Interface message queue
+For example, when we want to display information about a Topic by selecting the Topic Type in the SUBSCRIBE window, entering the Topic Name and then clicking the SUBSCRIBE button, the following steps are performed in the background:
+1) The GUI thread sends a "Subscribe to Topic" request to the uROS Thread with an OpCode specific to the topic type and the topic name as a pointer in the data field
+2) The uROS Thread gets the new request and:
+	- Unsubscribes from the previously subscribed topic (if any)
+	- Performs necessary clean ups (free variables)
+	- Subscribes to the new Topic
+3) Now when the uROS Thread gets a new message of the subscribed topic it informs the GUI over the queue with the same OpCode and with the pointer of the received message in the data field
+4) The GUI thread gets the new message and displays it on the screen
 
-The communication in the reverse direction, from GUI Interface to VUHFRadio module, are handled basically in reveres:
-1. If the GUI notices a change, an event, it publishes that change to the Radio Interface message queue
-2. The Radio Interface thread then reads that message and writes the appropriate command message over the serial interface to the VUHFRadio module
-
-This means that any updates to the GUI are performed ONLY by the GUI Thread, keeping the GUI thread safe as the LVGL library by itself is not. The updates to the GUI are performed before the LVGL task runs, this is done by modifying the **lvgl_thread_entry** function (packages\LVGL-v8.3.0\env_support\rt-thread\lv_rt_thread_port.c) and adding a external gui update handling function in the while loop:
+This process assures that any updates to the GUI are performed ONLY by the GUI Thread, keeping the GUI thread safe as the LVGL library by itself is not. The same for Micro-ROS updates. To get this functionality easily with LVGL we have to insert a call to our own GUI Update Function, this can be done simply by modifying the **lvgl_thread_entry** function (packages\LVGL-v8.3.0\env_support\rt-thread\lv_rt_thread_port.c) and adding our external gui update handling function in the while loop:
 
 ```c
 /* handle the tasks of LVGL */
@@ -115,12 +129,8 @@ while(1)
 }
 ```
 
-Another way to keep the GUI thread safe would be to wrap the **lv_task_handler** function and any LVGL (**lv_xxx**) function calls with a mutex, as described in the LVGL [documentation](https://docs.lvgl.io/master/porting/os.html).
+Another way to keep the GUI thread safe would be to wrap the **lv_task_handler** function and any LVGL (**lv_xxx**) function calls with a mutex, as described in the LVGL [documentation](https://docs.lvgl.io/master/porting/os.html), but this is more complex and incurs higher overhead.
 
 To manage the GUI better it is split into different areas, with each area being separated into there own source and header files:
 
 ![GUI UI](./GUI_UI.png)
-
-The main menu (guiMenu.c) is designed but it is not fully functional yet, it can be navigated and values can be changed but not all are sent to the VUHFRadio Module, for now. The menu style is shown in the figure bellow:
-
-![GUI UI Menu](./GUI_UI_Menu.png)

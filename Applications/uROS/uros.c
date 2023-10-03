@@ -71,8 +71,21 @@ void UROSSubscriberCallback(const void *msgin) {
   * @return rmw_ret_t
   */
 rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const char* topic) {
+    rmw_ret_t error = RMW_RET_OK;
+
+    //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
+    if(subscribedTopicType != SubscriberTopic_None) {
+        //Already subscribed to a topic, unsubscribe and clear subscriber
+        error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
+        if (error != RCL_RET_OK) {
+            rt_kprintf("[micro_ros] failed to unsubscribe from topic\n");
+            return error;
+        }
+        rcl_subscription_fini(&subscriber, &node);                            //Destroy/clear subscriber
+    }
+
     //Create new subscriber
-    rmw_ret_t error = rclc_subscription_init_default(&subscriber, &node, type, topic);
+    error = rclc_subscription_init_default(&subscriber, &node, type, topic);
     if (error != RCL_RET_OK) {
         rt_kprintf("[micro_ros] failed to create subscriber\n");
         return error;
@@ -83,6 +96,10 @@ rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const 
         rt_kprintf("[micro_ros] failed to add subscriber to executor\n");
         return error;
     }
+
+    //Safe subscribed topic information
+    subscribedTopicType = SubscriberTopic_Twist;
+    strcpy(subscribedTopic, topic);
 
     return error;
 }
@@ -262,12 +279,13 @@ void UROSThread() {
                 }
                 case UROSThread_List_Topics: {
                     //Get new node list
+                	//https://github.com/micro-ROS/micro-ROS-demos/blob/humble/rclc/graph_introspection/graph_visualizer/main.c
                     if(topicNamesListInitialized == 0x01) {
                         rcl_names_and_types_fini(&topicNamesList);   //Destroy/clear topic_names_and_types
                         topicNamesListInitialized = 0x00;
                     }
                     topicNamesList = rcl_get_zero_initialized_names_and_types();
-                    error = rcl_get_topic_names_and_types(&node, &allocator, true, &topicNamesList);
+                    error = rcl_get_topic_names_and_types(&node, &allocator, false, &topicNamesList);
                     if (error != RCL_RET_OK) {
                         char str[64];
                         sprintf(str, "[micro_ros] failed to get topic list (Error: %d)\n", error);
@@ -302,28 +320,78 @@ void UROSThread() {
                     break;
                 }
                 //Subscriber Control
+                //Geometry Messages
+                case UROSThread_Subscriber_Accel: {
+                    //Accel Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Accel), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
+                case UROSThread_Subscriber_Point: {
+                    //Point Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Point), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
+                case UROSThread_Subscriber_Pose: {
+                    //Pose Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
+                case UROSThread_Subscriber_Quaternion: {
+                    //Quaternion Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Quaternion), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
+                case UROSThread_Subscriber_Transform: {
+                    //Transform Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Transform), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
                 case UROSThread_Subscriber_Twist: {
                     //Twist Subscriber control
-                    //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
-                    if(subscribedTopicType != SubscriberTopic_None) {
-                        //Already subscribed to a topic, unsubscribe and clear subscriber
-                        error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
-                        if (error != RCL_RET_OK) {
-                            rt_kprintf("[micro_ros] failed to unsubscribe from topic\n");
-                            break;
-                        }
-                        rcl_subscription_fini(&subscriber, &node);                            //Destroy/clear subscriber
-                    }
-
                     //Subscribe to new topic
                     error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), (char*)msg.data);
                     if (error != RCL_RET_OK) {
                         break;
                     }
-
-                    //Safe subscribed topic information
-                    subscribedTopicType = SubscriberTopic_Twist;
-                    strcpy(subscribedTopic, (char*)msg.data);
+                    break;
+                }
+                case UROSThread_Subscriber_Vector3: {
+                    //Vector3 Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Vector3), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
+                //Navigation Message
+                case UROSThread_Subscriber_Odometry: {
+                    //Odometry Subscriber control
+                    //Subscribe to new topic
+                    error = UROSSubscribeToTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
                     break;
                 }
                 //Publisher Control

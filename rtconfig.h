@@ -174,7 +174,7 @@
 #define PKG_USING_LVGL
 #define PKG_LVGL_THREAD_PRIO 20
 #define PKG_LVGL_THREAD_STACK_SIZE 4096
-#define PKG_LVGL_DISP_REFR_PERIOD 5
+#define PKG_LVGL_DISP_REFR_PERIOD 33        //Set Refresh Rate in RT-Thread Ticks: 33 Ticks -> 33 ms -> 30Hz
 #define PKG_LVGL_USING_LATEST_VERSION
 #define PKG_LVGL_VER_NUM 0x99999
 /* end of LVGL: powerful and easy-to-use embedded GUI library */

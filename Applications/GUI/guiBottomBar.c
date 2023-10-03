@@ -21,36 +21,65 @@ static void GUIBottomBarButtonEvent(lv_event_t * e) {
 
 	    }
 	    else if(btn == topicListButton) {
-			if(lv_obj_has_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN) == true) {
-				//Menu is hidden (closed) so open it
-				lv_obj_clear_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+	        //Close all other windows
+//	        lv_obj_add_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN);
+
+			if(lv_obj_has_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN) == true) {
+				//Window is hidden (closed) so open it
+				lv_obj_clear_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN);
 
 				//Send/request new Topic list
                 InterThreadMessageStruct uROSMsg = {.id = UROSThread_List_Topics, .data = (uint32_t*)0x00, .length = 0 };
                 rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
 			}
 			else {
-				//Menu is not hidden (open) so close it
-				lv_obj_add_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+				//Window is not hidden (open) so close it
+				lv_obj_add_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN);
 			}
 		}
 	    else if(btn == subscriberButton) {
+	        //Close all other windows
+	        lv_obj_add_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN);
+//            lv_obj_add_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN);
 
+	        if(lv_obj_has_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN) == true) {
+                //Window is hidden (closed) so open it
+                lv_obj_clear_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+            }
+            else {
+                //Window is not hidden (open) so close it
+                lv_obj_add_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+            }
 	    }
 		else if(btn == publisherButton) {
-//          if(lv_obj_has_flag(menu, LV_OBJ_FLAG_HIDDEN) == true) {
-//              //Menu is hidden (closed) so open it
-//              lv_obj_clear_flag(menu, LV_OBJ_FLAG_HIDDEN);
-//          }
-//          else {
-//              //Menu is not hidden (open) so close it
-//              lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
-//          }
+            //Close all other windows
+		    lv_obj_add_flag(topicListWindowArea, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(subscriberWindowArea, LV_OBJ_FLAG_HIDDEN);
+//            lv_obj_add_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN);
+
+          if(lv_obj_has_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN) == true) {
+              //Window is hidden (closed) so open it
+              lv_obj_clear_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN);
+          }
+          else {
+              //Window is not hidden (open) so close it
+              lv_obj_add_flag(publisherWindowArea, LV_OBJ_FLAG_HIDDEN);
+          }
 		}
 		else if(btn == infoButton) {
 			GUIInfoWindowUpdate();
 
-			lv_obj_clear_flag(infoWindow, LV_OBJ_FLAG_HIDDEN);
+            if(lv_obj_has_flag(infoWindow, LV_OBJ_FLAG_HIDDEN) == true) {
+                //Window is hidden (closed) so open it
+                lv_obj_clear_flag(infoWindow, LV_OBJ_FLAG_HIDDEN);
+            }
+            else {
+                //Window is not hidden (open) so close it
+                lv_obj_add_flag(infoWindow, LV_OBJ_FLAG_HIDDEN);
+            }
 		}
 	}
 }

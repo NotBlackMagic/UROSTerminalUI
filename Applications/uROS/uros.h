@@ -13,12 +13,22 @@ extern "C" {
 
 //uROS RCL includes
 #include <rcl/rcl.h>
+#include <rcl/graph.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
 //ROS Messages
+#include <geometry_msgs/msg/accel.h>
+#include <geometry_msgs/msg/point.h>
+#include <geometry_msgs/msg/pose.h>
+#include <geometry_msgs/msg/quaternion.h>
+#include <geometry_msgs/msg/transform.h>
 #include <geometry_msgs/msg/twist.h>
+#include <geometry_msgs/msg/vector3.h>
+
+#include <nav_msgs/msg/odometry.h>
+
 #include <std_msgs/msg/int32.h>
 
 //RT-Thread include

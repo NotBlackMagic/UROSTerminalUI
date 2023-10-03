@@ -49,7 +49,9 @@ void GUIInfoWindowInit() {
 	lv_obj_set_style_pad_all(infoWindow, 0, LV_PART_MAIN);
 	lv_obj_set_style_border_width(infoWindow, 2, LV_PART_MAIN);
 	lv_obj_set_style_border_color(infoWindow, STYLE_COLOR_GREY, LV_PART_MAIN);
-	lv_obj_set_size(infoWindow, 200, 190);
+	lv_obj_set_style_outline_width(infoWindow, 3, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(infoWindow, STYLE_COLOR_DARK_GREEN, LV_PART_MAIN);
+	lv_obj_set_size(infoWindow, 300, 200);
 	lv_obj_align(infoWindow, LV_ALIGN_CENTER, 0, 0);
 
 	lv_obj_t* btn = lv_win_add_btn(infoWindow, LV_SYMBOL_CLOSE, 60);

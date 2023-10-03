@@ -25,6 +25,7 @@ static void GUITopBarButtonEvent(lv_event_t * e) {
             if(lv_obj_has_flag(connectionMenuArea, LV_OBJ_FLAG_HIDDEN) == true) {
                 //Connection Menu is hidden (closed) so open it
                 lv_obj_clear_flag(connectionMenuArea, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_move_foreground(connectionMenuArea);
             }
             else {
                 //Connection Menu is not hidden (open) so close it
@@ -106,7 +107,7 @@ void GUITopBarInit() {
     connectionButton = lv_btn_create(topBarArea);
     lv_obj_remove_style_all(connectionButton);
     lv_obj_add_style(connectionButton, &mainStyle, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(connectionButton, STYLE_COLOR_DARKER_GREY, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(connectionButton, STYLE_COLOR_DARK_GREY, LV_PART_MAIN);
 //    lv_obj_set_style_border_color(connectionButton, STYLE_COLOR_GREY, LV_PART_MAIN);
     lv_obj_set_style_border_width(connectionButton, 0, LV_PART_MAIN);
     lv_obj_add_style(connectionButton, &mainStylePressed, LV_STATE_PRESSED);
@@ -124,7 +125,7 @@ void GUITopBarInit() {
     connectionMenuArea = lv_obj_create(lv_scr_act());
     lv_obj_remove_style_all(connectionMenuArea);
     lv_obj_add_style(connectionMenuArea, &mainStyle, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(connectionMenuArea, lv_color_hex(0x101010), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(connectionMenuArea, STYLE_COLOR_DARKER_GREY, LV_PART_MAIN);
     lv_obj_set_style_border_width(connectionMenuArea, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(connectionMenuArea, 0, LV_PART_MAIN);
     lv_obj_set_size(connectionMenuArea, 240, 71);

@@ -40,8 +40,11 @@ void GUIInit() {
 	lv_obj_set_style_bg_color(lv_scr_act(), lv_color_hex(0x000000), 0);
 
 	//Initialize each part of the GUI interface
+	GUIWidgetKeyboardInit();
 	GUITopBarInit();
+	GUITopicListWindowInit();
 	GUISubscriberWindowInit();
+	GUIPublisherWindowInit();
 	GUIBottomBarInit();
 	GUIInfoWindowInit();
 }
@@ -96,9 +99,47 @@ void GUIUpdate() {
                 GUISubscriberWindowUpdate(topics);
                 break;
             }
+            //Subscriber Messages
+            //Geometry Messages
+            case UROSThread_Subscriber_Accel: {
+                //Got new Accel topic message
+                GUISubscriberContentAccel(msg.data);
+                break;
+            }
+            case UROSThread_Subscriber_Point: {
+                //Got new Point topic message
+                GUISubscriberContentPoint(msg.data);
+                break;
+            }
+            case UROSThread_Subscriber_Pose: {
+                //Got new Pose topic message
+                GUISubscriberContentPose(msg.data);
+                break;
+            }
+            case UROSThread_Subscriber_Quaternion: {
+                //Got new Quaternion topic message
+                GUISubscriberContentQuaternion(msg.data);
+                break;
+            }
+            case UROSThread_Subscriber_Transform: {
+                //Got new Transform topic message
+                GUISubscriberContentTransform(msg.data);
+                break;
+            }
             case UROSThread_Subscriber_Twist: {
-                //Got new twist topic message
+                //Got new Twist topic message
                 GUISubscriberContentTwist(msg.data);
+                break;
+            }
+            case UROSThread_Subscriber_Vector3: {
+                //Got new Vector3 topic message
+                GUISubscriberContentVector3(msg.data);
+                break;
+            }
+            //Navigation Message
+            case UROSThread_Subscriber_Odometry: {
+                //Got new Odometry topic message
+                GUISubscriberContentOdometry(msg.data);
                 break;
             }
         }
