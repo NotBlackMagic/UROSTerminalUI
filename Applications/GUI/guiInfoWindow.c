@@ -3,8 +3,8 @@
 #define GUI_HARDWARE_VERSION_MAJOR				1
 #define GUI_HARDWARE_VERSION_MINOR				0
 #define GUI_FIRMWARE_VERSION_MAJOR				1
-#define GUI_FIRMWARE_VERSION_MINOR				12
-#define GUI_FIRMWARE_VERSION_HASH				0x0f839b8e
+#define GUI_FIRMWARE_VERSION_MINOR				2
+#define GUI_FIRMWARE_VERSION_HASH				0x042c5798
 
 //Radio Information Window GUI Objects
 lv_obj_t* infoWindow;
@@ -29,7 +29,7 @@ void GUIInfoWindowUpdate() {
 	uint16_t index = 0;
 	char str[200];
 	index += sprintf(&str[index], "Dev: NotBlackMagic\n\n");
-	index += sprintf(&str[index], "GUI: %d.%02d [0x%08X]\n\n", GUI_HARDWARE_VERSION_MAJOR, GUI_HARDWARE_VERSION_MINOR, GUI_FIRMWARE_VERSION_HASH);
+	index += sprintf(&str[index], "GUI: %d.%02d [0x%08X]\n\n", GUI_FIRMWARE_VERSION_MAJOR, GUI_FIRMWARE_VERSION_MINOR, GUI_FIRMWARE_VERSION_HASH);
 	index += sprintf(&str[index], "RT-Thread: %d.%02d\n\n", RT_VERSION_MAJOR, RT_VERSION_MINOR);
 	index += sprintf(&str[index], "LVGL: %d.%02d\n\n", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR);
 	index += sprintf(&str[index], "uROS: ROS 2 \"%s\"", "Humble");

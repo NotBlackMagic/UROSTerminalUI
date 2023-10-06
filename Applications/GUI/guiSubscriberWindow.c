@@ -511,7 +511,7 @@ void GUISubscriberWindowInit() {
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_label_set_text(label, "Topic Type:");
 
-    subscribeTopicTypeLabel  = lv_label_create(cont);
+    subscribeTopicTypeLabel = lv_label_create(cont);
     lv_obj_remove_style_all(subscribeTopicTypeLabel);
     lv_obj_add_style(subscribeTopicTypeLabel, &mainStyle, LV_PART_MAIN);
     lv_obj_set_style_bg_color(subscribeTopicTypeLabel, STYLE_COLOR_DARK_GREY, LV_PART_MAIN);
@@ -538,7 +538,7 @@ void GUISubscriberWindowInit() {
     lv_obj_set_style_border_color(subscribeTopicTextArea, STYLE_COLOR_GREY, LV_PART_CURSOR);
     lv_obj_set_width(subscribeTopicTextArea, 120);
     lv_obj_align(subscribeTopicTextArea, LV_ALIGN_TOP_RIGHT, 0, 33);
-    lv_textarea_set_text(subscribeTopicTextArea, "Topic Name");
+    lv_textarea_set_text(subscribeTopicTextArea, "twist");
     lv_obj_add_event_cb(subscribeTopicTextArea, GUISubscribeTopicTextAreaEvent, LV_EVENT_FOCUSED, NULL);
     lv_obj_add_event_cb(subscribeTopicTextArea, GUISubscribeTopicTextAreaEvent, LV_EVENT_DEFOCUSED, NULL);
     lv_obj_add_event_cb(subscribeTopicTextArea, GUISubscribeTopicTextAreaEvent, LV_EVENT_READY, NULL);

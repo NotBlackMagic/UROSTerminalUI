@@ -206,13 +206,13 @@ void GUIPublisherWindowInit() {
     lv_obj_set_style_text_align(publisherControlHeaderLabel, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_text(publisherControlHeaderLabel, "None [None]");
 
-//    subscriberContentLabel = lv_label_create(subscriberInfoArea);
-//    lv_obj_remove_style_all(subscriberContentLabel);
-//    lv_obj_add_style(subscriberContentLabel, &mainStyle, LV_PART_MAIN);
-//    lv_obj_set_style_border_width(subscriberContentLabel, 0, LV_PART_MAIN);
-////    lv_obj_set_style_text_font(subscriberContentLabel, &lv_font_montserrat_12, LV_PART_MAIN);
-//    lv_obj_set_size(subscriberContentLabel, 336, 190);                   //W: 340 - 4; H: 224 - 30 - 2 - 2
-//    lv_obj_align(subscriberContentLabel, LV_ALIGN_TOP_LEFT, 0, 30);
+    publisherContentLabel = lv_label_create(publisherControlArea);
+    lv_obj_remove_style_all(publisherContentLabel);
+    lv_obj_add_style(publisherContentLabel, &mainStyle, LV_PART_MAIN);
+    lv_obj_set_style_border_width(publisherContentLabel, 0, LV_PART_MAIN);
+//    lv_obj_set_style_text_font(publisherContentLabel, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_size(publisherContentLabel, 336, 190);                   //W: 340 - 4; H: 224 - 30 - 2 - 2
+    lv_obj_align(publisherContentLabel, LV_ALIGN_TOP_LEFT, 0, 30);
 
     //--------------------------------------------------------------------------//
     //                      Publish to Topic Pop Up Window                      //
