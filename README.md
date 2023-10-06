@@ -1,13 +1,13 @@
 # Micro-ROS (uROS) Terminal UI
-This is the firmware for a simple Terminal UI interface for [Micro-ROS](https://micro.ros.org/), allowing to add a simple graphical UI to a [ROS 2](https://www.ros.org/) Robot over a Micro-ROS interface. The board it is running on is the new RT-Thread [HMI-Board](https://blog.lvgl.io/2023-06-14/ra6m3-hmi-board-review) developed by [RT-Thread](www.rt-thread.io) in colaboration with [Renesas](https://www.renesas.com/us/en) and [LVGL](https://lvgl.io/) using the high-performance [RA6M3](https://www.renesas.com/us/en/products/microcontrollers-microprocessors/ra-cortex-m-mcus/ra6m3-32-bit-microcontrollers-120mhz-usb-high-speed-ethernet-and-tft-controller) (Cortex-M4f running at 120 MHz, 2 MB flash and 640 kB RAM) chip from Renesas. This board was kindly provided by RT-Thread, LVGL and Renesas as part of the [Embedded GUI Contest](https://rt-thread.medium.com/2023-embedded-gui-contest-403648de53e4).
+This is the firmware for a simple Terminal UI interface for [Micro-ROS](https://micro.ros.org/), allowing to add a simple graphical UI to a [ROS 2](https://www.ros.org/) Robot over a Micro-ROS interface. The board it is running on is the new RT-Thread [HMI-Board](https://blog.lvgl.io/2023-06-14/ra6m3-hmi-board-review) developed by [RT-Thread](www.rt-thread.io) in collaboration with [Renesas](https://www.renesas.com/us/en) and [LVGL](https://lvgl.io/) using the high-performance [RA6M3](https://www.renesas.com/us/en/products/microcontrollers-microprocessors/ra-cortex-m-mcus/ra6m3-32-bit-microcontrollers-120mhz-usb-high-speed-ethernet-and-tft-controller) (Cortex-M4f running at 120 MHz, 2 MB flash and 640 kB RAM) chip from Renesas. This board was kindly provided by RT-Thread, LVGL and Renesas as part of the [Embedded GUI Contest](https://rt-thread.medium.com/2023-embedded-gui-contest-403648de53e4).
 
 The following features are tested and working:
 - Create, on request, a Micro-ROS connection to the host PC over a serial link (Baud: 115200 with 8-N-1)
 - Subscribe to a Topic and display the returned messages
 
 Features under development but not currently finished:
-- Create a Publisher with controllable message content
-- List available Topics in the current ROS environment together with its subscriber and publisher nodes
+- List available Topics in the current ROS environment together with its subscriber and publisher nodes: Front-end (Frontend skeleton in place, backend not implemented due to lack of support in used micro-ROS version...)
+- Create a Publisher with controllable message content (Both Frontend and Backend under development)
 
 Features planned but not yet started:
 - Ethernet based connection
@@ -15,7 +15,11 @@ Features planned but not yet started:
 ## Demos
 A short demo of the GUI Interface working and its current features can be found in the video bellow:
 
+TBD
+
+<!--
 [![GUI Interface Demo](https://img.youtube.com/vi/tcLBblnkBhU/0.jpg)](https://youtu.be/tcLBblnkBhU "GUI Interface Demo")
+-->
 
 ## Hardware
 
@@ -46,10 +50,10 @@ For this project it was necessary to create/enable a new peripheral that was not
 3) Select the install directory of the **RA Smart Configurator** (e.g. "C:\Renesas\RA\sc_v2023-07_fsp_v4.6.0")
 
 #### Changes/Configuration of new peripherals
-It is now possible to open the MCU configuration file with the **RA Smart Configurator** tool by clicking the "RA Smart Configurator" Link in the RT-Thread project. In the **RA Smart Configurator** we can now enable new peripherals and/or change settings of existing ones. As an example on how to enable and configure a new peripheral I'll go throught the steps I took to enable UART4:
+It is now possible to open the MCU configuration file with the **RA Smart Configurator** tool by clicking the "RA Smart Configurator" Link in the RT-Thread project. In the **RA Smart Configurator** we can now enable new peripherals and/or change settings of existing ones. As an example on how to enable and configure a new peripheral I'll go through the steps I took to enable UART4:
 
 1) Now open the "Stacks" tab from the bottom of the "FSP Configuration" window on the left side of the screen.
-2) Click "New Stack->Connectivity->UART (r_sci_uart)" (for adding UART4 I had to add 5 stacks, uart0 to uart4, and then delet the not desired ones, uart0 to uart3...)
+2) Click "New Stack->Connectivity->UART (r_sci_uart)" (for adding UART4 I had to add 5 stacks, uart0 to uart4, and then delete the not desired ones, uart0 to uart3...)
 3) Now we can select this newly created stack and configure it by clicking/selecting it and navigating to the bottom of the window where the Stack "Properties" are shown (configuration is based on how UART9 is configured, the default terminal interface).
 4) Select the Pins used for UART4
 5) Check that the name of the peripheral is set to "g_uart4" (Important as this is how RT-Thread will address it)
@@ -92,10 +96,10 @@ Change "\libraries\HAL_Drivers\drv_common.c" function "void R_BSP_WarmStart (bsp
 -->
 
 ### Configuring Micro-ROS to use UART4
-The final step is to tell Micro-ROS to use UART4 (or change to other UART desired). This is done throught the RT-Thread configuration file, "rtconfig.h", in the section for the Micro ROS packet. Here we can change the "MICRO_ROS_SERIAL_NAME" to "uart4". And that is all, now when a new serial connection is created using the Micro-ROS API it will use UART4.
+The final step is to tell Micro-ROS to use UART4 (or change to other UART desired). This is done through the RT-Thread configuration file, "rtconfig.h", in the section for the Micro ROS packet. Here we can change the "MICRO_ROS_SERIAL_NAME" to "uart4". And that is all, now when a new serial connection is created using the Micro-ROS API it will use UART4.
 
 ### Flashing and Debugging
-Altough the HMI-Board should be supported and work out of the box with the latest RT-Thread IDE, I had some difficulties which had to do with the installed debugger tool (pyOCD) not having the necessary files for the HMI-Board. I solved this by installing pyOCD fresh and use that instead of the one that came with the RT-Thread IDE. The steps for this are lsited bellow:
+Although the HMI-Board should be supported and work out of the box with the latest RT-Thread IDE, I had some difficulties which had to do with the installed debugger tool (pyOCD) not having the necessary files for the HMI-Board. I solved this by installing pyOCD fresh and use that instead of the one that came with the RT-Thread IDE. The steps for this are listed bellow:
 1) Install pyOCD with: py -m pip install -U pyocd
 2) Install support for HMI-Board with: pyocd pack install R7FA6M3AH
 3) Changed pyOCD location in the RT-Thread IDE: Debugger settings->Debugger->Executable path = "C:\Python311\Scripts\pyocd.exe". If the path is not know it can be obtained from a Python terminal with the following commands: "import pyOCD" and	"print(pyOCD.\_\_file\_\_)"

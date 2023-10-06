@@ -71,6 +71,7 @@ void UROSSubscriberCallback(const void *msgin) {
   * @return rmw_ret_t
   */
 rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const char* topic) {
+    char str[64];
     rmw_ret_t error = RMW_RET_OK;
 
     //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
@@ -78,22 +79,29 @@ rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const 
         //Already subscribed to a topic, unsubscribe and clear subscriber
         error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
         if (error != RCL_RET_OK) {
-            rt_kprintf("[micro_ros] failed to unsubscribe from topic\n");
+            sprintf(str, "[micro_ros] Failed to unsubscribe from topic (Error: %d)\n", error);
+            rt_kprintf(str);
             return error;
         }
         rcl_subscription_fini(&subscriber, &node);                            //Destroy/clear subscriber
     }
 
+    sprintf(str, "[micro_ros] Try subscribe to %s\n", topic);
+    rt_kprintf(str);
+
     //Create new subscriber
-    error = rclc_subscription_init_default(&subscriber, &node, type, topic);
+//    error = rclc_subscription_init_default(&subscriber, &node, type, topic);
+    error = rclc_subscription_init_best_effort(&subscriber, &node, type, topic);
     if (error != RCL_RET_OK) {
-        rt_kprintf("[micro_ros] failed to create subscriber\n");
+        sprintf(str, "[micro_ros] Failed to create subscriber (Error: %d)\n", error);
+        rt_kprintf(str);
         return error;
     }
 
     error = rclc_executor_add_subscription(&executor, &subscriber, &twistMsg, &UROSSubscriberCallback, ON_NEW_DATA);
     if (error != RCL_RET_OK) {
-        rt_kprintf("[micro_ros] failed to add subscriber to executor\n");
+        sprintf(str, "[micro_ros] Failed to add subscriber to executor (Error: %d)\n", error);
+        rt_kprintf(str);
         return error;
     }
 
@@ -198,7 +206,9 @@ void UROSThread() {
         if(uROSConenctionType != 0x00) {
             error = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
             if (error != RCL_RET_OK) {
-                rt_kprintf("[micro_ros] failed to spin executor\n");
+                char str[64];
+                sprintf(str, "[micro_ros] Failed to spin executor (Error: %d)\n", error);
+                rt_kprintf(str);
             }
         }
 
@@ -238,7 +248,9 @@ void UROSThread() {
                         //Create init_options
                         error = rclc_support_init(&support, 0, NULL, &allocator);
                         if (error != RCL_RET_OK) {
-                            rt_kprintf("[micro_ros] failed to initialize\n");
+                            char str[64];
+                            sprintf(str, "[micro_ros] Failed to initialize (Error: %d)\n", error);
+                            rt_kprintf(str);
                             uROSConenctionType = 0x00;
                             rt_pin_write(GPIO_LED_USER_1, PIN_HIGH);
                         }
@@ -246,7 +258,9 @@ void UROSThread() {
                         //Create node
                         error = rclc_node_init_default(&node, "uROS_Terminal", "", &support);
                         if (error != RCL_RET_OK) {
-                            rt_kprintf("[micro_ros] failed to create node\n");
+                            char str[64];
+                            sprintf(str, "[micro_ros] Failed to create node (Error: %d)\n", error);
+                            rt_kprintf(str);
                             uROSConenctionType = 0x00;
                             rt_pin_write(GPIO_LED_USER_1, PIN_HIGH);
                         }
@@ -254,7 +268,9 @@ void UROSThread() {
                         //Create executor
                         error = rclc_executor_init(&executor, &support.context, 1, &allocator);
                         if (error != RCL_RET_OK) {
-                            rt_kprintf("[micro_ros] failed to initialize executor\n");
+                            char str[64];
+                            sprintf(str, "[micro_ros] Failed to initialize executor (Error: %d)\n", error);
+                            rt_kprintf(str);
                             return;
                         }
                     }
@@ -288,7 +304,7 @@ void UROSThread() {
                     error = rcl_get_topic_names_and_types(&node, &allocator, false, &topicNamesList);
                     if (error != RCL_RET_OK) {
                         char str[64];
-                        sprintf(str, "[micro_ros] failed to get topic list (Error: %d)\n", error);
+                        sprintf(str, "[micro_ros] Failed to get topic list (Error: %d)\n", error);
                         //RCL_RET_NODE_INVALID              200
                         //RCL_RET_INVALID_ARGUMENT          11
                         //RCL_RET_NODE_INVALID_NAME         201
