@@ -15,7 +15,7 @@ Features planned but not yet started:
 ## Demos
 A short demo of the GUI Interface working and its current features can be found in the video bellow:
 
-[![Micro-ROS Terminal UI Demo](https://youtu.be/CsP6N9yULXY/0.jpg)](https://youtu.be/CsP6N9yULXY "Micro-ROS Terminal UI Demo")
+[![Micro-ROS Terminal UI Demo](https://img.youtube.com/vi/CsP6N9yULXY/0.jpg)](https://youtu.be/CsP6N9yULXY "Micro-ROS Terminal UI Demo")
 
 ## Hardware
 
