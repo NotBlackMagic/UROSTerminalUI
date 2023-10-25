@@ -109,8 +109,8 @@ static void GUIPublishTopicButtonEvent(lv_event_t * e) {
         sprintf(str, "[gui] Publish %s [%s] every %d ms\n", topic, topicType, topicPeriod);
         rt_kprintf(str);
 
-//        InterThreadMessageStruct uROSMsg = {.id = id, .data = (uint32_t*)topic, .length = strlen(topic) };
-//        rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
+        InterThreadMessageStruct uROSMsg = {.id = id, .data = (uint32_t*)topic, .length = strlen(topic) };
+        rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
     }
 }
 

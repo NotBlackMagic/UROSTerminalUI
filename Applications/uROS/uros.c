@@ -10,15 +10,16 @@ rclc_support_t support;
 rcl_node_t node;
 
 //uROS Subscribers variables
-SubscriberTopicTypes subscribedTopicType = 0;
-char subscribedTopic[64];
+SubscriberTopicTypes subscriberTopicType = 0;
+char subscriberTopic[64];
 rcl_subscription_t subscriber;
-
-geometry_msgs__msg__Twist twistMsg;
+geometry_msgs__msg__Twist subTwistMsg;
 
 //uROS Publishers variables
+PublisherTopicTypes publisherTopicType = 0;
+char publisherTopic[64];
 rcl_publisher_t publisher;
-std_msgs__msg__Int32 int32Msg;
+geometry_msgs__msg__Twist pubTwistMsg;
 
 //uROS Topic List variables
 uint8_t topicNamesListInitialized = 0x00;
@@ -39,19 +40,19 @@ static uint8_t uROSMessagePool[UROS_MESSAGE_POOL_SIZE];
   */
 void UROSSubscriberCallback(const void *msgin) {
     //Please remember to enable -u_printf_float in compiler settings
-//    const geometry_msgs__msg__Twist * twistMsg = (const geometry_msgs__msg__Twist *)msgin;
+//    const geometry_msgs__msg__Twist * subTwistMsg = (const geometry_msgs__msg__Twist *)msgin;
 //    rt_kprintf("linear \n");
-//    rt_kprintf("  x: %f \n", twistMsg->linear.x);
-//    rt_kprintf("  y: %f \n", twistMsg->linear.y);
-//    rt_kprintf("  z: %f \n", twistMsg->linear.z);
+//    rt_kprintf("  x: %f \n", subTwistMsg->linear.x);
+//    rt_kprintf("  y: %f \n", subTwistMsg->linear.y);
+//    rt_kprintf("  z: %f \n", subTwistMsg->linear.z);
 //    rt_kprintf("angular \n");
-//    rt_kprintf("  x: %f \n", twistMsg->angular.x);
-//    rt_kprintf("  y: %f \n", twistMsg->angular.y);
-//    rt_kprintf("  z: %f \n", twistMsg->angular.z);
+//    rt_kprintf("  x: %f \n", subTwistMsg->angular.x);
+//    rt_kprintf("  y: %f \n", subTwistMsg->angular.y);
+//    rt_kprintf("  z: %f \n", subTwistMsg->angular.z);
 
     //Inform GUI of Topics List
     uint32_t id = UROSThread_Subscriber_None;
-    switch(subscribedTopicType) {
+    switch(subscriberTopicType) {
         case SubscriberTopic_None: {
             return;
         }
@@ -75,7 +76,7 @@ rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const 
     rmw_ret_t error = RMW_RET_OK;
 
     //Check if already existing subscriber, if yes unsubscribe and delete/clear subscriber
-    if(subscribedTopicType != SubscriberTopic_None) {
+    if(subscriberTopicType != SubscriberTopic_None) {
         //Already subscribed to a topic, unsubscribe and clear subscriber
         error = rclc_executor_remove_subscription(&executor, &subscriber);    //Unsubscribe
         if (error != RCL_RET_OK) {
@@ -98,7 +99,7 @@ rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const 
         return error;
     }
 
-    error = rclc_executor_add_subscription(&executor, &subscriber, &twistMsg, &UROSSubscriberCallback, ON_NEW_DATA);
+    error = rclc_executor_add_subscription(&executor, &subscriber, &subTwistMsg, &UROSSubscriberCallback, ON_NEW_DATA);
     if (error != RCL_RET_OK) {
         sprintf(str, "[micro_ros] Failed to add subscriber to executor (Error: %d)\n", error);
         rt_kprintf(str);
@@ -106,8 +107,36 @@ rmw_ret_t UROSSubscribeToTopic(const rosidl_message_type_support_t* type, const 
     }
 
     //Safe subscribed topic information
-    subscribedTopicType = SubscriberTopic_Twist;
-    strcpy(subscribedTopic, topic);
+    subscriberTopicType = SubscriberTopic_Twist;
+    strcpy(subscriberTopic, topic);
+
+    return error;
+}
+
+/**
+  * @brief  This function creates a publisher for the "topic" of type "type"
+  * @param  type: To publish message type (ROSIDL_GET_MSG_TYPE_SUPPORT())
+  * @param  topic: Name of topic to publish
+  * @return rmw_ret_t
+  */
+rmw_ret_t UROSCreatePublisherTopic(const rosidl_message_type_support_t* type, const char* topic) {
+    char str[64];
+    rmw_ret_t error = RMW_RET_OK;
+
+    //Create new publisher
+    error = rclc_publisher_init_default(    &publisher,
+                                            &node,
+                                            ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+                                            "test_topic");
+    if (error != RCL_RET_OK) {
+        sprintf(str, "[micro_ros] Failed to create publisher (Error: %d)\n", error);
+        rt_kprintf(str);
+        return error;
+    }
+
+    //Safe subscribed topic information
+    publisherTopicType = PublisherTopic_Twist;
+    strcpy(publisherTopic, topic);
 
     return error;
 }
@@ -116,9 +145,13 @@ void UROSThread() {
     rt_err_t status;
     InterThreadMessageStruct msg;
 
+    char str[64];
     rmw_ret_t error;
     uROSConenctionType = 0x00;
     rt_pin_write(GPIO_LED_USER_1, PIN_HIGH);
+
+    //Initialize Micro-ROS allocator with custom one (using RT-Thread memory allocation functions)
+    set_microros_allocators();
 
     //**********************************************************************************//
     //Create uROS Connection Code
@@ -178,7 +211,7 @@ void UROSThread() {
         return;
     }
 
-    error = rclc_executor_add_subscription(&executor, &subscriber, &twistMsg, &TwistSubscriberCallback, ON_NEW_DATA);
+    error = rclc_executor_add_subscription(&executor, &subscriber, &subTwistMsg, &TwistSubscriberCallback, ON_NEW_DATA);
     if (error != RCL_RET_OK) {
         rt_kprintf("[micro_ros] failed to add subscriber to executor\n");
         return;
@@ -201,12 +234,13 @@ void UROSThread() {
     */
     //**********************************************************************************//
 
-    uint8_t btnPressed = 0x00;
+    uint8_t btnUser0Pressed = 0x00;
+    uint8_t btnUser1Pressed = 0x00;
+    uint8_t btnUser2Pressed = 0x00;
     while(1) {
         if(uROSConenctionType != 0x00) {
             error = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
             if (error != RCL_RET_OK) {
-                char str[64];
                 sprintf(str, "[micro_ros] Failed to spin executor (Error: %d)\n", error);
                 rt_kprintf(str);
             }
@@ -248,7 +282,6 @@ void UROSThread() {
                         //Create init_options
                         error = rclc_support_init(&support, 0, NULL, &allocator);
                         if (error != RCL_RET_OK) {
-                            char str[64];
                             sprintf(str, "[micro_ros] Failed to initialize (Error: %d)\n", error);
                             rt_kprintf(str);
                             uROSConenctionType = 0x00;
@@ -258,7 +291,6 @@ void UROSThread() {
                         //Create node
                         error = rclc_node_init_default(&node, "uROS_Terminal", "", &support);
                         if (error != RCL_RET_OK) {
-                            char str[64];
                             sprintf(str, "[micro_ros] Failed to create node (Error: %d)\n", error);
                             rt_kprintf(str);
                             uROSConenctionType = 0x00;
@@ -268,7 +300,6 @@ void UROSThread() {
                         //Create executor
                         error = rclc_executor_init(&executor, &support.context, 1, &allocator);
                         if (error != RCL_RET_OK) {
-                            char str[64];
                             sprintf(str, "[micro_ros] Failed to initialize executor (Error: %d)\n", error);
                             rt_kprintf(str);
                             return;
@@ -303,7 +334,6 @@ void UROSThread() {
                     topicNamesList = rcl_get_zero_initialized_names_and_types();
                     error = rcl_get_topic_names_and_types(&node, &allocator, false, &topicNamesList);
                     if (error != RCL_RET_OK) {
-                        char str[64];
                         sprintf(str, "[micro_ros] Failed to get topic list (Error: %d)\n", error);
                         //RCL_RET_NODE_INVALID              200
                         //RCL_RET_INVALID_ARGUMENT          11
@@ -430,17 +460,58 @@ void UROSThread() {
 //                    }
                     break;
                 }
+                case UROSThread_Publisher_Twist: {
+                    //Twist Publisher control
+                    //Create new publisher
+                    error = UROSCreatePublisherTopic(ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), (char*)msg.data);
+                    if (error != RCL_RET_OK) {
+                        break;
+                    }
+                    break;
+                }
             }
         }
 
-        if(btnPressed == 0x00 && rt_pin_read(GPIO_BUTTON_USER_2) == PIN_LOW) {
+        //Publish Topic Button
+        if(btnUser2Pressed == 0x00 && rt_pin_read(GPIO_BUTTON_USER_2) == PIN_LOW) {
+            //Publish Topic
+            if(publisherTopicType == PublisherTopic_Twist) {
+                pubTwistMsg.linear.x = 3.33f;
+                pubTwistMsg.linear.y = 0.00f;
+                pubTwistMsg.linear.z = 0.00f;
+                pubTwistMsg.angular.x = 0.00f;
+                pubTwistMsg.angular.y = 0.00f;
+                pubTwistMsg.angular.z = -1.57f;
+
+                error = rcl_publish(&publisher, &pubTwistMsg, NULL);
+                if (error != RCL_RET_OK) {
+                    sprintf(str, "[micro_ros] Failed to publish topic(Error: %d)\n", error);
+                    rt_kprintf(str);
+                }
+            }
+            btnUser2Pressed = 0x01;
+        }
+        else {
+            btnUser2Pressed = 0x00;
+        }
+
+        //Connection Button Check
+        if(btnUser0Pressed == 0x00 && rt_pin_read(GPIO_BUTTON_USER_0) == PIN_LOW) {
             uint8_t connectionType = 0x01;
             InterThreadMessageStruct uROSMsg = {.id = UROSThread_Connect, .data = (uint32_t*)connectionType, .length = 0 };
             rt_mq_send(&uROSMessageQueue, (void*)&uROSMsg, sizeof(InterThreadMessageStruct));
-            btnPressed = 0x01;
+            btnUser0Pressed = 0x01;
         }
         else {
-            btnPressed = 0x00;
+            btnUser0Pressed = 0x00;
+        }
+
+        //Unsued User Button Check
+        if(btnUser1Pressed == 0x00 && rt_pin_read(GPIO_BUTTON_USER_1) == PIN_LOW) {
+            btnUser1Pressed = 0x01;
+        }
+        else {
+            btnUser1Pressed = 0x00;
         }
 
         rt_thread_mdelay(100);
@@ -452,7 +523,7 @@ void UROSThread() {
     rcl_publisher_fini(&publisher, &node);              //Destroy/clear publisher
 }
 
-void UROSThreadInit() {
+static int UROSThreadInit(void) {
     rt_err_t status;
 
     //Initialize the uROS message queue

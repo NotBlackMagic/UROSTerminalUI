@@ -35,8 +35,22 @@ rosidl_runtime_c__String micro_ros_string_utilities_init(const char * data)
   return ret;
 }
 
+rosidl_runtime_c__String micro_ros_string_utilities_init_with_size(const size_t size)
+{
+  const rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  rosidl_runtime_c__String ret;
+
+  ret.size = 0;
+  ret.capacity = size + 1;
+  ret.data = allocator.allocate(ret.capacity, allocator.state);
+  memset(ret.data, 0, ret.capacity);
+
+  return ret;
+}
+
 rosidl_runtime_c__String micro_ros_string_utilities_set(
-  rosidl_runtime_c__String str,
+  const rosidl_runtime_c__String str,
   const char * data)
 {
   const rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -54,14 +68,14 @@ rosidl_runtime_c__String micro_ros_string_utilities_set(
   return ret;
 }
 
-const char * micro_ros_string_utilities_get_c_str(rosidl_runtime_c__String str)
+const char * micro_ros_string_utilities_get_c_str(const rosidl_runtime_c__String str)
 {
   return (const char *) str.data;
 }
 
 
 rosidl_runtime_c__String micro_ros_string_utilities_append(
-  rosidl_runtime_c__String str,
+  const rosidl_runtime_c__String str,
   const char * data)
 {
   const rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -69,7 +83,7 @@ rosidl_runtime_c__String micro_ros_string_utilities_append(
   rosidl_runtime_c__String ret = str;
   size_t append_size = strlen(data);
 
-  if (append_size + ret.size > ret.capacity) {
+  if (append_size + ret.size >= ret.capacity) {
     ret.data = allocator.reallocate(ret.data, ret.size + append_size + 1, allocator.state);
     ret.capacity = ret.size + append_size + 1;
   }
@@ -82,7 +96,7 @@ rosidl_runtime_c__String micro_ros_string_utilities_append(
 }
 
 rosidl_runtime_c__String micro_ros_string_utilities_remove_tail_chars(
-  rosidl_runtime_c__String str,
+  const rosidl_runtime_c__String str,
   const size_t n)
 {
   rosidl_runtime_c__String ret = str;
@@ -94,7 +108,7 @@ rosidl_runtime_c__String micro_ros_string_utilities_remove_tail_chars(
 }
 
 
-void micro_ros_string_utilities_destroy(rosidl_runtime_c__String * str)
+void micro_ros_string_utilities_destroy(rosidl_runtime_c__String * const str)
 {
   const rcutils_allocator_t allocator = rcutils_get_default_allocator();
 

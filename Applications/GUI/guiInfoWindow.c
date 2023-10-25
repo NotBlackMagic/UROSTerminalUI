@@ -34,6 +34,9 @@ void GUIInfoWindowUpdate() {
 	index += sprintf(&str[index], "LVGL: %d.%02d\n\n", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR);
 	index += sprintf(&str[index], "uROS: ROS 2 \"%s\"", "Humble");
 
+//	UXR_CLIENT_VERSION_MAJOR
+//	MICROCDR_VERSION_MAJOR
+
 	lv_label_set_text(infoLabel, str);
 }
 

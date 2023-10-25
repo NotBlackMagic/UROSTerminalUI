@@ -249,7 +249,7 @@ rcutils_set_error_state(const char * error_string, const char * file, size_t lin
  * \param[in] msg The error message to be set.
  */
 #ifdef RCUTILS_AVOID_DYNAMIC_ALLOCATION
-  #define RCUTILS_SET_ERROR_MSG(msg)
+//  #define RCUTILS_SET_ERROR_MSG(msg)
 #else
 #define RCUTILS_SET_ERROR_MSG(msg) \
   do {rcutils_set_error_state(msg, __FILE__, __LINE__);} while (0)

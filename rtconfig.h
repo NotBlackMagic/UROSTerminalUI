@@ -222,8 +222,8 @@
 /* end of Kendryte SDK */
 #define PKG_USING_MICRO_ROS
 #define MICRO_ROS_USE_SERIAL
-#define MICRO_ROS_USING_ARCH_CORTEX_M4_FPV4_SP_D16_HARD
-#define MICRO_ROS_USING_GCC_10
+//#define MICRO_ROS_USING_ARCH_CORTEX_M4_FPV4_SP_D16_HARD
+//#define MICRO_ROS_USING_GCC_10
 #define MICRO_ROS_SERIAL_NAME "uart4"
 //#define PKG_USING_MICRO_ROS_HUMBLE_GCC_10
 /* end of peripheral libraries and drivers */
@@ -326,7 +326,7 @@
 //#define BSP_USING_ONCHIP_RTC
 
 #define BSP_USING_UART4
-#define BSP_UART4_RX_BUFSIZE 256
+#define BSP_UART4_RX_BUFSIZE 512
 #define BSP_UART4_TX_BUFSIZE 0
 /* end of On-chip Peripheral Drivers */
 

@@ -31,7 +31,9 @@ The current version only supports a Micro-ROS connection over serial, specifical
 ![HMI-Board](./HMI-Board_Pinout.png)
 
 ## Software
-The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and the Micro-ROS interface is based on a [Micro-ROS RT-Thread package](https://github.com/wuhanstudio/micro_ros) with some modifications<sup>1</sup>. The full project files and dependencies are included in this GitHub repository, including both the LVGL and Micro-ROS package (both with some modifications). To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio.
+The GUI Interface runs on the RT-Thread RTOS and uses the [LVGL](www.lvgl.io) embedded graphics library. The GUI Interface project was developed using the RT-Thread IDE, [RT-Thread Studio](www.rt-thread.io/studio.html), and uses a custom build Micro-ROS static library and transport layer. Initially I used the following RT-Thread Micro-ROS port: [Micro-ROS RT-Thread package](https://github.com/wuhanstudio/micro_ros) which required some modifications to get working/compiling properly <sup>1</sup>. Later on I decided to learn how to create my own custom port, which is what is used now in the project, from building Micro-ROS to creating the transport layer functions. I wrote a step-by-step instructions for this, with lessons learned, that can be found on my [Website](https://notblackmagic.com/bitsnpieces/micro-ros/).
+
+The full project files and dependencies are included in this GitHub repository, including both the LVGL and the custom built Micro-ROS package (still in the same folder as the one used before). To run the project it is therefore only necessary to install RT-Thread Studio, download this repository and import this project in RT-Thread Studio.
 
 To debug and flash the board from RT-Thread Studio follow the instruction bellow in the "Flashing and Debugging" Section.
 
@@ -92,7 +94,11 @@ Change "\libraries\HAL_Drivers\drv_common.c" function "void R_BSP_WarmStart (bsp
 -->
 
 ### Configuring Micro-ROS to use UART4
-The final step is to tell Micro-ROS to use UART4 (or change to other UART desired). This is done through the RT-Thread configuration file, "rtconfig.h", in the section for the Micro ROS packet. Here we can change the "MICRO_ROS_SERIAL_NAME" to "uart4". And that is all, now when a new serial connection is created using the Micro-ROS API it will use UART4.
+The final step is to create the appropriate transport layer for Micro-ROS using UART4. These functions can be found in under "packages/micro_ros-humble-gcc-10/src/micro_ros_transport_serial.c". Instructions on how to write a custom transport layer e.g. for another peripheral can be found on my [Website](https://notblackmagic.com/bitsnpieces/micro-ros/#micro-ros-build-and-port).
+
+<!--
+tell Micro-ROS to use UART4 (or change to other UART desired). This is done through the RT-Thread configuration file, "rtconfig.h", in the section for the Micro ROS packet. Here we can change the "MICRO_ROS_SERIAL_NAME" to "uart4". And that is all, now when a new serial connection is created using the Micro-ROS API it will use UART4.
+ -->
 
 ### Flashing and Debugging
 Although the HMI-Board should be supported and work out of the box with the latest RT-Thread IDE, I had some difficulties which had to do with the installed debugger tool (pyOCD) not having the necessary files for the HMI-Board. I solved this by installing pyOCD fresh and use that instead of the one that came with the RT-Thread IDE. The steps for this are listed bellow:

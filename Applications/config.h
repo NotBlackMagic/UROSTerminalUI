@@ -11,6 +11,12 @@ typedef enum {
     SubscriberTopic_Twist = 1
 } SubscriberTopicTypes;
 
+//List all implemented publisher topic types
+typedef enum {
+    PublisherTopic_None = 0,
+    PublisherTopic_Twist = 1
+} PublisherTopicTypes;
+
 #ifdef __cplusplus
 }
 #endif
